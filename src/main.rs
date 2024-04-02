@@ -13,4 +13,6 @@ fn main() {
     players.push_back(player1);
     players.push_back(player2);
     
+    let mut tic_tac_toe_game_manager = GameManager::new(players, 3);
+    tic_tac_toe_game_manager.play_game();
 }

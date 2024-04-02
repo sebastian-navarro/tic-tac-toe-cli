@@ -4,17 +4,17 @@ use core::fmt;
 
 #[derive(Debug)]
 pub struct Board{
-    pub size: usize,
+    pub size: i32,
     pub cells: Vec<Vec<char>>,
 }
 
 impl Board {
-    pub fn new(size: usize) -> Self {
+    pub fn new(size: i32) -> Self {
         let cells = vec![vec!['-'; size as usize]; size as usize];
         return Self { size, cells }
     }
 
-    pub fn insert_new_symbol(&mut self, row: usize , col: usize, symbol: char) -> bool {
+    pub fn insert_new_symbol(&mut self, row: i32 , col: i32, symbol: char) -> bool {
         if row >= self.size || col >= self.size {
             println!("row or col should be less than {}", self.size);
             return false

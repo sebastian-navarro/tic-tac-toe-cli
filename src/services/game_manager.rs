@@ -1,4 +1,5 @@
 use std::collections::VecDeque;
+use std::io;
 
 use crate::domains::game::Game;
 use crate::domains::board::Board;
@@ -9,7 +10,7 @@ pub struct GameManager {
 }
 
 impl GameManager {
-    pub fn new(players: VecDeque<Player>, board_size:usize) -> Self {
+    pub fn new(players: VecDeque<Player>, board_size:i32) -> Self {
         let board = Board::new(board_size);
         let game = Game::new(players, board);
         return Self { 
@@ -21,16 +22,41 @@ impl GameManager {
     pub fn play_game(&mut self) {
         while self.game.status != "COMPLETE" {
 
+        let (mut row, mut col , is_success) = self.get_player_input();
 
-            // get_player_input
+        if !is_success {
+            continue;
+        }
 
-            // insert_symbol_in_cell
+        row = row - 1;
+        col = col - 1;
 
-            // check if player has won
+        let game_board = &mut self.game.board;
 
-            // check if game is a draw
+        let is_inserted = game_board.insert_new_symbol(row, col, self.game.players[0].symbol);
+        if !is_inserted {
+            continue;
+        }
 
-            // change turn to the next player
+        self.moves += 1;
+        println!("{}", game_board);
+
+        let has_won = self.is_winner(row as usize, col as usize, self.game.players[0].symbol);
+
+        if has_won {
+            println!("Winner is Player {0}", self.game.players[0].name);
+            self.game.status = "COMPLETE".to_string();
+            return
+        }
+
+        let n = self.game.board.size;
+        if self.moves == (n * n) as i32 {
+            println!("Game has ended in a draw");
+            self.game.status = "COMPLETE".to_string();
+        }
+
+        self.change_player_turn();
+            
         }
     }
 
@@ -77,7 +103,7 @@ impl GameManager {
         let mut symbols_in_diagonal = 0;
 
         for i in 0..n {
-            if self.game.board.cells[i as usize][n - i - 1 as usize] != symbol {
+            if self.game.board.cells[i as usize][(n - i - 1) as usize ] != symbol {
                 break;
             }
             symbols_in_diagonal += 1;
@@ -89,6 +115,33 @@ impl GameManager {
     pub fn is_winner(&self, row:usize, col: usize, symbol: char) -> bool {
         return self.is_row_complete(row, symbol) || 
         self.is_col_complete(col, symbol) ||
-        self.is_diagonal_complete(symbol)
+        self.is_diagonal_complete(symbol);
     }
+
+    pub fn change_player_turn(&mut self) {
+        let current_player_option = self.game.players.pop_front();
+        match current_player_option {
+            Some(current_player) => {
+                self.game.players.push_back(current_player);
+            },
+            _ => {}
+        }
+    }
+
+    pub fn get_player_input(&self) -> (i32, i32, bool) {
+        let mut user_input = String::new();
+        io::stdin().read_line(&mut user_input).expect("Failed to read line");
+        user_input.truncate(user_input.len() -1); // remove last /n
+
+        let inputs: Vec<i32> = user_input.split(" ")
+        .map(|x| x.parse().expect("Not an integer!")).collect();
+        
+        if inputs.len() != 2 {
+            println!("enter row and column with a space beetwen");
+            return(0, 0, false);
+        }
+
+        return (inputs[0], inputs[1], true);
+    }
+
 }
